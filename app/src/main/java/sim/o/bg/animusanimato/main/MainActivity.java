@@ -1,9 +1,12 @@
 package sim.o.bg.animusanimato.main;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -37,6 +40,8 @@ public class MainActivity extends Activity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setLogo(R.mipmap.ic_launcher);
+        toolbar.setTitle(R.string.app_name);
+        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.white));
 
         RecyclerView recycler = findViewById(R.id.activity_main_recycler);
         recycler.setAdapter(new RecyclerView.Adapter<ClientHolder>() {
@@ -93,16 +98,26 @@ public class MainActivity extends Activity {
         }
 
         private void bind(Client client) throws IOException {
-            if (mImageRetriever != null)
-                mImageRetriever.cancel(true);
-
             mPhoto.setImageDrawable(mDefaultBack);
 
-            mImageRetriever = new AsyncImageRetriever(mPhoto);
-            mImageRetriever.execute(client.getPhotoURL());
+            if (hasInterwebz()) {
+                if (mImageRetriever != null)
+                    mImageRetriever.cancel(true);
+
+                mImageRetriever = new AsyncImageRetriever(mPhoto);
+                mImageRetriever.execute(client.getPhotoURL());
+            }
 
             mTitle.setText(client.getName());
             mDetails.setText(client.getDescription());
+        }
+
+
+        // TODO: 08-Feb-18 - move to a NetUtils or sth m9;
+        public boolean hasInterwebz() {
+            ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+            return (info != null && info.isConnected());
         }
     }
 }
